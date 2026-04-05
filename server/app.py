@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from env.environment import ModelCardAuditEnv
 from env.models import Action, Observation
@@ -16,9 +16,10 @@ def read_root():
     return {"message": "Welcome to ModelCardAudit-Env"}
 
 @app.post("/reset")
-def reset_env(req: ResetRequest):
+def reset_env(req: Optional[ResetRequest] = None):
     try:
-        obs = env.reset(req.task_id)
+        task_id = req.task_id if req else "basic_completeness"
+        obs = env.reset(task_id)
         return obs.model_dump()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
