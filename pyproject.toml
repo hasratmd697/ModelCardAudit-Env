@@ -30,6 +30,8 @@ dependencies = [
 
 [project.scripts]
 modelcard-audit-env = "server.app:main"
+serve = "server.app:main"
+server = "server.app:main"
 
 [project.optional-dependencies]
 dev = [
