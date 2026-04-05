@@ -7,12 +7,14 @@
 ## 🧠 Motivation
 
 Model cards are the primary documentation for ML models, yet:
+
 - **73% of HuggingFace model cards** are missing critical sections (bias analysis, limitations, intended use)
 - Manual review is tedious and inconsistent
 - Regulatory pressure is increasing (EU AI Act mandates documentation)
 - No standardized tooling exists for automated model card quality assessment
 
 **ModelCardAudit-Env** provides a realistic simulation where an AI agent:
+
 1. Receives a model card document (structured into sections)
 2. Reviews it against a compliance checklist (varying by task difficulty)
 3. Flags issues, suggests improvements, and verifies technical claims
@@ -23,16 +25,19 @@ Model cards are the primary documentation for ML models, yet:
 ## 📐 Environment Design
 
 ### Actions
-| Action | Description |
-|:---|:---|
-| `read_section` | Read a specific section of the model card |
-| `flag_issue` | Flag a compliance or quality issue with type, severity, description |
-| `suggest_improvement` | Suggest content improvements for a section |
-| `verify_claim` | Verify a technical claim (e.g., metric accuracy) |
-| `submit_audit` | Submit the final audit report and end the episode |
+
+| Action                | Description                                                         |
+| :-------------------- | :------------------------------------------------------------------ |
+| `read_section`        | Read a specific section of the model card                           |
+| `flag_issue`          | Flag a compliance or quality issue with type, severity, description |
+| `suggest_improvement` | Suggest content improvements for a section                          |
+| `verify_claim`        | Verify a technical claim (e.g., metric accuracy)                    |
+| `submit_audit`        | Submit the final audit report and end the episode                   |
 
 ### Observation Space
+
 Each step returns an `Observation` containing:
+
 - Task metadata and description
 - Model card metadata (name, type, framework)
 - Available sections and currently viewed section content
@@ -42,7 +47,9 @@ Each step returns an `Observation` containing:
 - Step count and steps remaining
 
 ### Reward Signal
+
 Multi-dimensional reward combining:
+
 - **Precision**: Correct findings / total findings
 - **Recall**: Found issues / total real issues
 - **Coverage**: Sections reviewed / total sections
@@ -54,18 +61,21 @@ Multi-dimensional reward combining:
 ## 📋 Tasks
 
 ### Task 1: Basic Completeness Check (Easy)
+
 - **Objective**: Identify missing required sections from a 10-item checklist
 - **Max Steps**: 30
 - **Grader**: `score = 0.5 * recall + 0.3 * precision + 0.2 * coverage`
 - **Expected Baseline**: 0.60–0.70
 
 ### Task 2: Technical Consistency Audit (Medium)
+
 - **Objective**: Find internal inconsistencies and insufficient documentation
 - **Max Steps**: 45
 - **Grader**: `score = 0.4 * recall + 0.3 * precision + 0.15 * suggestion_quality + 0.15 * severity_accuracy`
 - **Expected Baseline**: 0.35–0.45
 
 ### Task 3: Regulatory Compliance Audit (Hard)
+
 - **Objective**: Full audit against EU AI Act and NIST AI RMF standards
 - **Max Steps**: 60
 - **Grader**: `score = 0.35 * recall + 0.25 * precision + 0.15 * severity_accuracy + 0.15 * regulatory_mapping + 0.10 * efficiency`
@@ -76,6 +86,7 @@ Multi-dimensional reward combining:
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Python 3.11+
 - (Optional) An OpenAI API key for LLM-driven inference
 
@@ -120,6 +131,7 @@ docker run -p 7860:7860 modelcard-audit-env
 ```
 
 ### HuggingFace Spaces
+
 - Create an HF Space with `openenv` tag
 - Use Docker SDK Space type
 - The FastAPI server exposes on port 7860
@@ -173,20 +185,25 @@ modelcard-audit-env/
 ## 🔌 API Reference
 
 ### `POST /reset`
+
 Reset the environment for a new episode.
 
 **Request Body:**
+
 ```json
-{"task_id": "basic_completeness"}
+{ "task_id": "basic_completeness" }
 ```
+
 Task IDs: `basic_completeness`, `technical_consistency`, `regulatory_compliance`
 
 **Response:** An `Observation` object.
 
 ### `POST /step`
+
 Take an action in the environment.
 
 **Request Body:**
+
 ```json
 {
   "action_type": "flag_issue",
@@ -198,6 +215,7 @@ Take an action in the environment.
 ```
 
 **Response:**
+
 ```json
 {
   "observation": { ... },
@@ -208,21 +226,23 @@ Take an action in the environment.
 ```
 
 ### `GET /state`
+
 Get the full internal state (for debugging).
 
 ### `GET /tasks`
+
 List available task IDs.
 
 ---
 
 ## ⚙️ Environment Variables
 
-| Variable | Default | Description |
-|:---|:---|:---|
-| `ENV_API_URL` | `http://localhost:7860` | URL of the environment API server |
-| `OPENAI_API_KEY` | None | OpenAI API key (enables LLM agent) |
-| `OPENAI_BASE_URL` | None | Custom OpenAI-compatible API base URL |
-| `MODEL_NAME` | `gpt-4o-mini` | Model to use for inference |
+| Variable          | Default                 | Description                           |
+| :---------------- | :---------------------- | :------------------------------------ |
+| `ENV_API_URL`     | `http://localhost:7860` | URL of the environment API server     |
+| `OPENAI_API_KEY`  | None                    | OpenAI API key (enables LLM agent)    |
+| `OPENAI_BASE_URL` | None                    | Custom OpenAI-compatible API base URL |
+| `MODEL_NAME`      | `gpt-4o-mini`           | Model to use for inference            |
 
 ---
 
