@@ -1,3 +1,14 @@
+---
+title: ModelCardAudit-Env
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+tags:
+  - openenv
+---
+
 # 🏆 ModelCardAudit-Env
 
 > An OpenEnv environment where an AI agent acts as a **responsible AI auditor**, reviewing ML model cards for completeness, technical consistency, bias documentation quality, and regulatory compliance against frameworks like the EU AI Act and NIST AI RMF.
