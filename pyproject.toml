@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "modelcard-audit-env"
+version = "1.0.0"
+description = "An OpenEnv environment for auditing ML model cards for completeness, technical consistency, and regulatory compliance (EU AI Act / NIST AI RMF)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Hasrathussain" }
+]
+keywords = ["openenv", "model-card", "ai-audit", "responsible-ai", "eu-ai-act"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.8.0",
+    "openai>=1.35.0",
+    "requests>=2.32.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["env*", "server*"]
+
+[project.urls]
+Homepage = "https://huggingface.co/spaces/Hasrathussain/ModelCardAudit-Env"
+Repository = "https://github.com/hasratmd697/ModelCardAudit-Env"
