@@ -25,7 +25,11 @@ dependencies = [
     "pydantic>=2.8.0",
     "openai>=1.35.0",
     "requests>=2.32.0",
+    "openenv-core>=0.2.0",
 ]
+
+[project.scripts]
+modelcard-audit-env = "server.app:main"
 
 [project.optional-dependencies]
 dev = [
