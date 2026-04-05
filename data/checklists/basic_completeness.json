@@ -1,0 +1,15 @@
+{
+  "name": "basic_completeness",
+  "items": [
+    {"id": "c1", "section": "model_description", "requirement": "Must have model description"},
+    {"id": "c2", "section": "intended_use", "requirement": "Must have intended use"},
+    {"id": "c3", "section": "limitations", "requirement": "Must have limitations"},
+    {"id": "c4", "section": "bias_analysis", "requirement": "Must have bias analysis"},
+    {"id": "c5", "section": "training_data", "requirement": "Must have training data"},
+    {"id": "c6", "section": "evaluation_metrics", "requirement": "Must have evaluation metrics"},
+    {"id": "c7", "section": "ethical_considerations", "requirement": "Must have ethical considerations"},
+    {"id": "c8", "section": "environmental_impact", "requirement": "Must have environmental impact"},
+    {"id": "c9", "section": "citation", "requirement": "Must have citation"},
+    {"id": "c10", "section": "license", "requirement": "Must have license"}
+  ]
+}

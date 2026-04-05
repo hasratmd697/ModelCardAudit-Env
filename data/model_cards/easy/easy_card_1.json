@@ -1,0 +1,15 @@
+{
+  "id": "easy_card_1",
+  "model_name": "BasicTextClassifier-v1",
+  "model_type": "text_classification",
+  "framework": "PyTorch",
+  "sections": {
+    "model_description": "BasicTextClassifier-v1 is a fine-tuned DistilBERT model for multi-class topic classification. The model categorizes news articles into 4 categories: Sports, Politics, Technology, and Entertainment. It uses a simple classification head on top of the [CLS] token representation.",
+    "intended_use": "Classifying news articles by topic for content recommendation systems and editorial workflows.",
+    "training_data": "Trained on the AG News dataset (120,000 training samples, 7,600 test samples). The dataset is publicly available and contains English-language news articles from 2004-2005.",
+    "evaluation_metrics": "Accuracy: 90.2%, Macro-F1: 0.89. Evaluated on the standard AG News test split.",
+    "ethical_considerations": "News classification could be used to create filter bubbles. Users should ensure diverse content exposure in downstream applications.",
+    "citation": "Sanh et al., 2019 — DistilBERT, a distilled version of BERT.",
+    "license": "MIT"
+  }
+}

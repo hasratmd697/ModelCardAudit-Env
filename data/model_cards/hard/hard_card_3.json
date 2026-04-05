@@ -1,0 +1,19 @@
+{
+  "id": "hard_card_3",
+  "model_name": "DiagAssist-Radiology-v2",
+  "model_type": "image_classification",
+  "framework": "PyTorch",
+  "sections": {
+    "model_description": "DiagAssist-Radiology-v2 is a deep learning model that analyzes chest X-ray images to detect pneumonia, tuberculosis, and lung nodules. The model outputs a probability score and a heatmap overlay showing regions of interest. In high-confidence cases (score > 0.95), the system flags the case as positive automatically in the hospital PACS system.",
+    "intended_use": "Designed as a diagnostic aid for radiologists in hospital settings to prioritize and triage chest X-ray readings.",
+    "out_of_scope_use": "Not intended for pediatric radiology or CT/MRI modalities.",
+    "limitations": "Performance may be reduced for portable/bedside X-rays with lower image quality. The model has not been validated on X-rays from patients with implanted devices.",
+    "bias_analysis": "The model was tested across patient age groups (18-40, 41-60, 60+) with AUC differences of less than 0.02. Gender-specific performance was not separately evaluated. Racial and ethnic subgroup analysis was not performed.",
+    "training_data": "Trained on 200,000 chest X-rays from three academic medical centers in the United States. Labels were derived from radiology reports using an NLP extraction pipeline. The NLP pipeline accuracy was not reported.",
+    "evaluation_metrics": "Sensitivity: 0.96, Specificity: 0.94, AUC: 0.98 for pneumonia detection. Performance on TB and nodule detection was not separately reported.",
+    "ethical_considerations": "This is a medical AI system with direct patient safety implications. Misdiagnosis could lead to delayed treatment. The model should be used as a second opinion tool only.",
+    "environmental_impact": "Training on 8x A100 GPUs for 72 hours. Estimated 120 kg CO2eq.",
+    "citation": "Smith et al., 2024 — Deep Learning for Automated Chest X-ray Interpretation.",
+    "license": "Research License — Clinical deployment requires regulatory approval"
+  }
+}

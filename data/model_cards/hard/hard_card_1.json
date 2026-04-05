@@ -1,0 +1,18 @@
+{
+  "id": "hard_card_1",
+  "model_name": "Credit-Scoring-Model",
+  "model_type": "tabular_classification",
+  "framework": "Scikit-Learn",
+  "sections": {
+    "model_description": "A model designed to automatically approve or reject loan applications. The system makes final autonomous decisions without human intervention to speed up the process.",
+    "intended_use": "Credit scoring and loan approval in retail banking.",
+    "limitations": "May struggle with applicants who have short credit histories.",
+    "bias_analysis": "Tested across gender and age groups, demographic parity difference is less than 2%.",
+    "training_data": "Proprietary bank data from 2015-2023.",
+    "evaluation_metrics": "F1-Score: 0.88, ROC-AUC: 0.92",
+    "ethical_considerations": "The model decisions impact financial access, so fairness is monitored quarterly.",
+    "environmental_impact": "Minimal, trained on a small CPU cluster.",
+    "citation": "Internal Bank Repo.",
+    "license": "Proprietary"
+  }
+}

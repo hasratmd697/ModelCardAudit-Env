@@ -1,0 +1,19 @@
+{
+  "id": "medium_card_3",
+  "model_name": "TranslateLM-EN-FR",
+  "model_type": "seq2seq_translation",
+  "framework": "JAX",
+  "sections": {
+    "model_description": "TranslateLM-EN-FR is a Transformer-based encoder-decoder model with 12 layers, 768 hidden size, and 110M parameters, fine-tuned for English-to-French translation.",
+    "intended_use": "Real-time translation of English text to French for customer support chat applications.",
+    "out_of_scope_use": "Should not be used for legal or medical document translation where certified human translation is required.",
+    "limitations": "Struggles with domain-specific jargon, idiomatic expressions, and text longer than 512 tokens.",
+    "bias_analysis": "We evaluated the model for gender bias in pronoun translation. The model correctly translates gendered pronouns 87% of the time on the WinoMT benchmark. We have not tested for other forms of bias.",
+    "training_data": "Trained on a curated 50M sentence-pair corpus from Europarl, OpenSubtitles, and web-crawled data. The model architecture is a standard RNN with attention.",
+    "evaluation_metrics": "BLEU score: 38.5 on WMT14 EN-FR test set.\n\nNote: Our internal evaluation shows BLEU of 41.2 on a proprietary test set, but no confidence intervals are provided.",
+    "ethical_considerations": "Translation models can propagate cultural biases present in training data. Users should review translations for sensitive content.",
+    "environmental_impact": "Training required 200 TPU-hours. Carbon footprint not measured.",
+    "citation": "Internal Research Report, 2024.",
+    "license": "MIT"
+  }
+}

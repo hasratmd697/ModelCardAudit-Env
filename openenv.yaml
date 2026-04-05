@@ -1,0 +1,14 @@
+name: ModelCardAudit-Env
+description: An environment for auditing ML model cards for completeness, consistency, and compliance.
+version: 1.0.0
+author: OpenEnv Hacker
+tasks:
+  - id: basic_completeness
+    description: "Easy: Identify missing required sections from a basic model card checklist."
+    max_steps: 30
+  - id: technical_consistency
+    description: "Medium: Review a model card for internal inconsistencies and insufficient documentation."
+    max_steps: 45
+  - id: regulatory_compliance
+    description: "Hard: Full audit against EU AI Act documentation requirements and NIST AI RMF standards."
+    max_steps: 60

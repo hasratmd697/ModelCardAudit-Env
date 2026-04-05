@@ -1,0 +1,88 @@
+{
+  "easy_card_1": [
+    {
+      "id": "E1-1",
+      "section": "limitations",
+      "type": "missing",
+      "severity": "high",
+      "description": "Limitations section is completely absent. No failure modes, edge cases, or known weaknesses are documented.",
+      "suggested_fix": "Add a limitations section detailing known failure modes, dataset biases, and deployment constraints."
+    },
+    {
+      "id": "E1-2",
+      "section": "bias_analysis",
+      "type": "missing",
+      "severity": "high",
+      "description": "No bias analysis section provided. A text classifier can exhibit biases based on training data demographics.",
+      "suggested_fix": "Add a bias analysis section examining performance across demographic groups and content types."
+    },
+    {
+      "id": "E1-3",
+      "section": "environmental_impact",
+      "type": "missing",
+      "severity": "low",
+      "description": "Environmental impact section is missing entirely.",
+      "suggested_fix": "Add estimated training compute, GPU hours, and CO2 emissions."
+    }
+  ],
+  "easy_card_2": [
+    {
+      "id": "E2-1",
+      "section": "limitations",
+      "type": "missing",
+      "severity": "high",
+      "description": "Limitations section is completely absent.",
+      "suggested_fix": "Document known failure cases such as sarcasm, mixed sentiment, and domain-specific language."
+    },
+    {
+      "id": "E2-2",
+      "section": "bias_analysis",
+      "type": "missing",
+      "severity": "high",
+      "description": "No bias analysis section. Sentiment models are known to exhibit biases across demographic groups.",
+      "suggested_fix": "Add bias analysis examining performance across product categories, language styles, and demographic indicators."
+    },
+    {
+      "id": "E2-3",
+      "section": "ethical_considerations",
+      "type": "missing",
+      "severity": "medium",
+      "description": "Ethical considerations section is missing.",
+      "suggested_fix": "Document potential misuse scenarios and ethical implications of automated sentiment scoring."
+    },
+    {
+      "id": "E2-4",
+      "section": "environmental_impact",
+      "type": "missing",
+      "severity": "low",
+      "description": "Environmental impact section is missing.",
+      "suggested_fix": "Add training compute costs and carbon footprint estimates."
+    }
+  ],
+  "easy_card_3": [
+    {
+      "id": "E3-1",
+      "section": "intended_use",
+      "type": "missing",
+      "severity": "high",
+      "description": "Intended use section is missing. Users cannot determine appropriate deployment contexts.",
+      "suggested_fix": "Add clear intended use cases, target environments, and expected users."
+    },
+    {
+      "id": "E3-2",
+      "section": "ethical_considerations",
+      "type": "missing",
+      "severity": "medium",
+      "description": "Ethical considerations section is missing.",
+      "suggested_fix": "Document ethical implications of object detection, especially regarding surveillance applications."
+    },
+    {
+      "id": "E3-3",
+      "section": "citation",
+      "type": "missing",
+      "severity": "low",
+      "description": "Citation section is missing.",
+      "suggested_fix": "Add proper academic citation for the model and its base architecture."
+    }
+  ]
+}

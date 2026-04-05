@@ -1,0 +1,19 @@
+{
+  "id": "medium_card_2",
+  "model_name": "MedNER-Clinical-v3",
+  "model_type": "token_classification",
+  "framework": "PyTorch",
+  "sections": {
+    "model_description": "MedNER-Clinical-v3 is a BiLSTM-CRF model for extracting named entities from clinical notes. It identifies medications, dosages, conditions, and procedures. The model uses GloVe 300d embeddings and was trained using a Transformer encoder architecture.",
+    "intended_use": "For use by healthcare NLP pipelines to extract structured information from unstructured clinical notes in English-language EHR systems.",
+    "out_of_scope_use": "Not intended for direct diagnostic use or patient-facing applications.",
+    "limitations": "May struggle with abbreviations and non-standard medical terminology. Performance is lower on handwritten note transcriptions.",
+    "bias_analysis": "We conducted bias analysis and confirmed the model is fair across all populations.",
+    "training_data": "Trained on the i2b2 2010 clinical NER dataset containing 394 de-identified patient records from a single hospital system in Boston, MA.",
+    "evaluation_metrics": "The model achieves state-of-the-art F1 of 0.94 on clinical NER.\n\n| Entity Type | Precision | Recall | F1 |\n|---|---|---|---|\n| Medication | 0.89 | 0.85 | 0.87 |\n| Condition | 0.82 | 0.80 | 0.81 |\n| Procedure | 0.78 | 0.74 | 0.76 |\n| Overall | 0.83 | 0.80 | 0.81 |",
+    "ethical_considerations": "The training data was de-identified according to HIPAA Safe Harbor guidelines. The model should not be used as a sole basis for clinical decision-making.",
+    "environmental_impact": "Minimal — trained on a single V100 GPU for 6 hours.",
+    "citation": "Author et al., 2023 — MedNER: Clinical Entity Recognition with BiLSTM-CRF.",
+    "license": "Research-only, non-commercial"
+  }
+}

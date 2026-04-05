@@ -1,0 +1,80 @@
+{
+  "medium_card_1": [
+    {
+      "id": "M1-1",
+      "section": "evaluation_metrics",
+      "type": "inconsistent",
+      "severity": "high",
+      "description": "The model card claims 94% accuracy in the text but the evaluation table shows 84% on the test set. This is a direct contradiction.",
+      "suggested_fix": "Reconcile the accuracy claim with the evaluation table. Report a single consistent number with methodology."
+    },
+    {
+      "id": "M1-2",
+      "section": "bias_analysis",
+      "type": "insufficient",
+      "severity": "medium",
+      "description": "Bias analysis states 'We checked for bias and it is fine' with no methodology, metrics, demographic groups tested, or quantitative results.",
+      "suggested_fix": "Include specific demographic groups tested, evaluation metrics used, disaggregated performance data, and methodology description."
+    }
+  ],
+  "medium_card_2": [
+    {
+      "id": "M2-1",
+      "section": "model_description",
+      "type": "inconsistent",
+      "severity": "high",
+      "description": "Model description says 'BiLSTM-CRF model' but also mentions 'Transformer encoder architecture'. These are fundamentally different architectures.",
+      "suggested_fix": "Clarify whether the model is BiLSTM-CRF or Transformer-based and remove the contradictory reference."
+    },
+    {
+      "id": "M2-2",
+      "section": "evaluation_metrics",
+      "type": "inconsistent",
+      "severity": "high",
+      "description": "Claims 'state-of-the-art F1 of 0.94' but the detailed table shows overall F1 of 0.81. The numbers contradict each other.",
+      "suggested_fix": "Report consistent metrics. If 0.94 refers to a different evaluation, clarify the methodology."
+    },
+    {
+      "id": "M2-3",
+      "section": "bias_analysis",
+      "type": "insufficient",
+      "severity": "medium",
+      "description": "Bias analysis claims the model is 'fair across all populations' with zero supporting evidence, methodology, or metrics. This is a medical NER model where bias can have serious consequences.",
+      "suggested_fix": "Conduct and document bias analysis across patient demographics, clinical settings, and document types."
+    },
+    {
+      "id": "M2-4",
+      "section": "training_data",
+      "type": "insufficient",
+      "severity": "medium",
+      "description": "Training data comes from a single hospital system (Boston). Generalizability to other healthcare systems, regions, or demographics is not discussed.",
+      "suggested_fix": "Document the geographic and demographic limitations of the training data and expected generalization gaps."
+    }
+  ],
+  "medium_card_3": [
+    {
+      "id": "M3-1",
+      "section": "model_description",
+      "type": "inconsistent",
+      "severity": "high",
+      "description": "Model description says 'Transformer-based encoder-decoder' but training_data section says 'standard RNN with attention'. These are different architectures.",
+      "suggested_fix": "Clarify the actual model architecture and ensure consistency across all sections."
+    },
+    {
+      "id": "M3-2",
+      "section": "evaluation_metrics",
+      "type": "insufficient",
+      "severity": "medium",
+      "description": "Reports BLEU scores but explicitly notes 'no confidence intervals are provided'. Also reports different scores on public vs. proprietary test sets without explanation.",
+      "suggested_fix": "Add confidence intervals, bootstrap estimates, or multiple-run statistics. Clarify the proprietary test set methodology."
+    },
+    {
+      "id": "M3-3",
+      "section": "environmental_impact",
+      "type": "insufficient",
+      "severity": "low",
+      "description": "Reports 200 TPU-hours but states 'carbon footprint not measured'. Environmental impact section is incomplete.",
+      "suggested_fix": "Estimate and report carbon footprint using available calculators like ML CO2 Impact."
+    }
+  ]
+}

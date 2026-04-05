@@ -1,0 +1,20 @@
+{
+  "name": "technical_consistency",
+  "items": [
+    {"id": "tc1", "section": "evaluation_metrics", "requirement": "Metric claims in text must match evaluation tables/data"},
+    {"id": "tc2", "section": "evaluation_metrics", "requirement": "Must include confidence intervals or statistical significance measures"},
+    {"id": "tc3", "section": "evaluation_metrics", "requirement": "Must report dataset sizes for all evaluation sets"},
+    {"id": "tc4", "section": "evaluation_metrics", "requirement": "All claimed capabilities must have corresponding evaluation metrics"},
+    {"id": "tc5", "section": "bias_analysis", "requirement": "Bias analysis must provide specific methodology, not vague claims"},
+    {"id": "tc6", "section": "bias_analysis", "requirement": "Must include quantitative results from bias evaluation"},
+    {"id": "tc7", "section": "bias_analysis", "requirement": "Must specify which demographic groups or categories were tested"},
+    {"id": "tc8", "section": "training_data", "requirement": "Training data description must be consistent with model architecture claims"},
+    {"id": "tc9", "section": "training_data", "requirement": "Must document data representativeness and known limitations"},
+    {"id": "tc10", "section": "training_data", "requirement": "Must report training dataset size"},
+    {"id": "tc11", "section": "model_description", "requirement": "Model architecture description must be internally consistent across all sections"},
+    {"id": "tc12", "section": "model_description", "requirement": "Must specify model size (parameters) or complexity"},
+    {"id": "tc13", "section": "limitations", "requirement": "Limitations must be specific and actionable, not generic disclaimers"},
+    {"id": "tc14", "section": "environmental_impact", "requirement": "Must include specific compute costs (GPU hours, hardware type)"},
+    {"id": "tc15", "section": "environmental_impact", "requirement": "Must report or estimate carbon footprint"}
+  ]
+}

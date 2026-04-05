@@ -1,0 +1,134 @@
+{
+  "hard_card_1": [
+    {
+      "id": "H1-1",
+      "section": "general",
+      "type": "missing",
+      "severity": "critical",
+      "description": "No formal risk assessment is provided for this high-risk AI system (credit scoring). EU AI Act Article 9 requires a risk management system for high-risk AI.",
+      "regulation": "EU AI Act Article 9",
+      "suggested_fix": "Include a comprehensive risk assessment covering identified risks, risk mitigation measures, and residual risk analysis."
+    },
+    {
+      "id": "H1-2",
+      "section": "model_description",
+      "type": "non_compliant",
+      "severity": "critical",
+      "description": "The system makes 'final autonomous decisions without human intervention'. For credit scoring (high-risk), EU AI Act Article 14 requires human oversight measures.",
+      "regulation": "EU AI Act Article 14",
+      "suggested_fix": "Document human oversight procedures including human-in-the-loop mechanisms, appeal processes, and override capabilities."
+    },
+    {
+      "id": "H1-3",
+      "section": "training_data",
+      "type": "insufficient",
+      "severity": "high",
+      "description": "Training data described as 'proprietary bank data' with no provenance details, data governance documentation, or quality assurance measures. EU AI Act Article 10 requires documented data governance.",
+      "regulation": "EU AI Act Article 10",
+      "suggested_fix": "Document data provenance, collection methodology, quality checks, representativeness analysis, and data governance procedures."
+    },
+    {
+      "id": "H1-4",
+      "section": "general",
+      "type": "missing",
+      "severity": "high",
+      "description": "No transparency disclosures for end users. Loan applicants should be informed that an AI system is used in the decision process. NIST AI RMF Govern function requires transparency.",
+      "regulation": "EU AI Act Article 13, NIST AI RMF Govern 1.2",
+      "suggested_fix": "Add a transparency section documenting how end-users will be informed about AI involvement in the decision."
+    }
+  ],
+  "hard_card_2": [
+    {
+      "id": "H2-1",
+      "section": "general",
+      "type": "missing",
+      "severity": "critical",
+      "description": "No formal risk assessment provided for this high-risk AI system (employment/hiring). EU AI Act Annex III classifies employment AI as high-risk.",
+      "regulation": "EU AI Act Article 9, Annex III(4)",
+      "suggested_fix": "Conduct and document a full risk assessment per Article 9, including risk identification, evaluation, and mitigation measures."
+    },
+    {
+      "id": "H2-2",
+      "section": "model_description",
+      "type": "non_compliant",
+      "severity": "critical",
+      "description": "System 'automatically filters out candidates scoring below 40 without human review'. This violates Article 14 human oversight requirements for high-risk AI.",
+      "regulation": "EU AI Act Article 14",
+      "suggested_fix": "Implement and document human review process for all automated filtering decisions. Add appeal mechanism."
+    },
+    {
+      "id": "H2-3",
+      "section": "bias_analysis",
+      "type": "insufficient",
+      "severity": "high",
+      "description": "Bias analysis only covers gender (binary) and explicitly states age and ethnicity were not analyzed, which are protected characteristics under employment law.",
+      "regulation": "EU AI Act Article 10(2)(f)",
+      "suggested_fix": "Conduct comprehensive bias analysis including age, ethnicity, disability status, and intersectional analysis using proxy variables if direct attributes unavailable."
+    },
+    {
+      "id": "H2-4",
+      "section": "training_data",
+      "type": "insufficient",
+      "severity": "high",
+      "description": "Historical hiring data may encode historical biases. No documentation of bias mitigation in training data. Only US tech sector data — geographic and industry bias not addressed.",
+      "regulation": "EU AI Act Article 10(2)",
+      "suggested_fix": "Document bias analysis of training data, representativeness assessment, and any debiasing techniques applied."
+    },
+    {
+      "id": "H2-5",
+      "section": "general",
+      "type": "missing",
+      "severity": "high",
+      "description": "No transparency disclosures documented. Job applicants must be informed about AI involvement in hiring decisions.",
+      "regulation": "EU AI Act Article 13, NIST AI RMF Govern 1.2",
+      "suggested_fix": "Document how candidates will be informed about AI usage in the screening process and their right to contest decisions."
+    }
+  ],
+  "hard_card_3": [
+    {
+      "id": "H3-1",
+      "section": "general",
+      "type": "missing",
+      "severity": "critical",
+      "description": "No formal risk assessment for a medical AI system. EU AI Act Annex III classifies medical device AI as high-risk. NIST AI RMF Map function requires risk identification.",
+      "regulation": "EU AI Act Article 9, Annex III(5), NIST AI RMF Map 1.1",
+      "suggested_fix": "Document comprehensive risk assessment including clinical risks, failure modes, and patient safety implications."
+    },
+    {
+      "id": "H3-2",
+      "section": "model_description",
+      "type": "non_compliant",
+      "severity": "critical",
+      "description": "System auto-flags cases as positive in PACS at confidence > 0.95 without documented human oversight. Medical AI requires robust human-in-the-loop mechanisms.",
+      "regulation": "EU AI Act Article 14",
+      "suggested_fix": "Document how radiologists review and confirm AI-flagged cases before clinical action. Add override capabilities."
+    },
+    {
+      "id": "H3-3",
+      "section": "bias_analysis",
+      "type": "insufficient",
+      "severity": "high",
+      "description": "No racial/ethnic subgroup analysis performed. Medical AI has documented disparities across racial groups in diagnostic imaging. Gender analysis was also omitted.",
+      "regulation": "EU AI Act Article 10(2)(f), NIST AI RMF Measure 2.6",
+      "suggested_fix": "Conduct full demographic subgroup analysis including race, ethnicity, and gender with disaggregated performance metrics."
+    },
+    {
+      "id": "H3-4",
+      "section": "training_data",
+      "type": "insufficient",
+      "severity": "high",
+      "description": "Labels derived from NLP pipeline whose accuracy 'was not reported'. This creates unknown data quality issues. Data only from US academic centers — generalizability not addressed.",
+      "regulation": "EU AI Act Article 10, NIST AI RMF Measure 2.5",
+      "suggested_fix": "Report NLP label extraction accuracy, conduct label quality audit, and document geographic/demographic representativeness of training sites."
+    },
+    {
+      "id": "H3-5",
+      "section": "evaluation_metrics",
+      "type": "insufficient",
+      "severity": "medium",
+      "description": "Performance metrics only reported for pneumonia detection. TB and nodule detection performance 'not separately reported' despite being listed capabilities.",
+      "regulation": "EU AI Act Article 11, NIST AI RMF Measure 2.3",
+      "suggested_fix": "Report full disaggregated performance metrics for all claimed detection capabilities."
+    }
+  ]
+}

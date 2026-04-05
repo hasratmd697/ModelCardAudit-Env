@@ -1,0 +1,19 @@
+{
+  "id": "hard_card_2",
+  "model_name": "ResumeRanker-AI",
+  "model_type": "tabular_ranking",
+  "framework": "XGBoost",
+  "sections": {
+    "model_description": "ResumeRanker-AI is an XGBoost-based candidate ranking model used in automated hiring pipelines. It takes structured resume features (years of experience, education level, skills match score, previous company tier) and outputs a suitability score from 0 to 100. The system automatically filters out candidates scoring below 40 without human review.",
+    "intended_use": "Used by HR departments to pre-screen and rank job applicants for technical roles at scale.",
+    "out_of_scope_use": "Not designed for executive-level hiring or roles requiring subjective cultural fit assessment.",
+    "limitations": "The model may undervalue non-traditional career paths such as bootcamp graduates or career changers. Performance has not been validated for roles outside of software engineering.",
+    "bias_analysis": "We ran statistical parity analysis across gender (male/female) and found less than 3% difference in selection rates. Age and ethnicity were not included in the analysis as these attributes are not collected.",
+    "training_data": "Historical hiring data from 2018-2023 comprising 150,000 applications and their outcomes (hired/not-hired). Data sourced from 12 partner companies in the US tech sector.",
+    "evaluation_metrics": "NDCG@10: 0.82, Precision@5: 0.78, AUC: 0.89. Evaluated on a 2023 Q4 holdout set from 3 partner companies.",
+    "ethical_considerations": "Automated hiring decisions carry significant ethical implications. We recommend human oversight for final hiring decisions.",
+    "environmental_impact": "Negligible — XGBoost model trained in under 10 minutes on standard hardware.",
+    "citation": "Internal whitepaper, HRTech Division, 2024.",
+    "license": "Proprietary"
+  }
+}

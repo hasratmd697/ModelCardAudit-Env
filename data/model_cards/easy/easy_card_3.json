@@ -1,0 +1,15 @@
+{
+  "id": "easy_card_3",
+  "model_name": "ObjectDetect-YOLO-Nano",
+  "model_type": "object_detection",
+  "framework": "PyTorch",
+  "sections": {
+    "model_description": "ObjectDetect-YOLO-Nano is a lightweight YOLO-based object detection model optimized for edge deployment on mobile devices. The model detects 80 COCO object classes with reduced parameter count (3.2M params).",
+    "limitations": "Performance degrades significantly in low-light conditions and for objects smaller than 32x32 pixels. Not suitable for real-time safety-critical applications.",
+    "bias_analysis": "The model was evaluated for detection accuracy across object categories. Performance is lower for underrepresented categories in COCO such as 'toaster' and 'hair dryer'. No demographic bias analysis was conducted as the model detects objects, not people-attributes.",
+    "training_data": "Trained on COCO 2017 training split (118K images, 80 categories). Data augmentation included random flip, mosaic, and mixup.",
+    "evaluation_metrics": "mAP@0.5: 0.68, mAP@0.5:0.95: 0.42. Inference speed: 12ms on iPhone 14.",
+    "environmental_impact": "Training consumed approximately 48 GPU-hours on a single A100. Estimated CO2 emission: 8.5 kg CO2eq.",
+    "license": "GPL-3.0"
+  }
+}

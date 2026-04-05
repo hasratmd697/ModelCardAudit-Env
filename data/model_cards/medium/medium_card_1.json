@@ -1,0 +1,19 @@
+{
+  "id": "medium_card_1",
+  "model_name": "ResNet50-Product-Classifier",
+  "model_type": "image_classification",
+  "framework": "PyTorch",
+  "sections": {
+    "model_description": "ResNet50-Product-Classifier is a ResNet-50 model fine-tuned for product category classification on e-commerce product images. The model classifies images into 25 product categories with a custom classification head.",
+    "intended_use": "Automated product categorization for e-commerce platforms to assist with catalog management and search indexing.",
+    "out_of_scope_use": "Not suitable for brand or logo detection, counterfeit detection, or quality assurance inspection.",
+    "limitations": "Does not perform well on images with multiple products, white-background studio shots only. Performance degrades on user-generated photos.",
+    "bias_analysis": "We checked for bias and it is fine.",
+    "training_data": "Trained on an internal dataset of 500,000 product images across 25 categories from the company's catalog (2020-2023).",
+    "evaluation_metrics": "The model achieves 94% top-1 accuracy on product classification.\n\n| Split | Top-1 Accuracy | Top-5 Accuracy |\n|---|---|---|\n| Validation | 87% | 96% |\n| Test | 84% | 94% |",
+    "ethical_considerations": "Standard precautions apply. The model should not be used for pricing decisions or discriminatory product filtering.",
+    "environmental_impact": "Unknown.",
+    "citation": "He et al., 2016 — Deep Residual Learning for Image Recognition.",
+    "license": "Apache-2.0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "easy_card_2",
+  "model_name": "SentimentBERT-v1",
+  "model_type": "text_classification",
+  "framework": "TensorFlow",
+  "sections": {
+    "model_description": "SentimentBERT-v1 is a fine-tuned BERT-base model for binary sentiment analysis (positive/negative) on English product reviews. It uses a standard [CLS] token classification head with a single dense layer.",
+    "intended_use": "This model is intended for analyzing customer product reviews on e-commerce platforms to determine overall sentiment polarity.",
+    "out_of_scope_use": "Not suitable for multi-class emotion detection, sarcasm detection, or non-English text.",
+    "training_data": "Fine-tuned on the Amazon Product Reviews dataset (5M reviews, English only). The dataset was filtered to remove reviews shorter than 10 words.",
+    "evaluation_metrics": "Accuracy: 92.3%, F1: 0.91, Precision: 0.90, Recall: 0.92. Evaluated on a held-out 20% test split.",
+    "citation": "Devlin et al., 2019 — BERT: Pre-training of Deep Bidirectional Transformers.",
+    "license": "Apache-2.0"
+  }
+}
