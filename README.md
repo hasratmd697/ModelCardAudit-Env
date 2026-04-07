@@ -117,11 +117,12 @@ uvicorn server.app:app --host 0.0.0.0 --port 7860
 ### Running the Baseline Agent
 
 ```bash
-# Naive baseline (no API key needed)
+# Deterministic local baseline
 python inference.py
 
-# LLM-driven baseline
-export OPENAI_API_KEY="your-key-here"
+# Validator / LiteLLM proxy-backed run
+export API_BASE_URL="https://your-litellm-proxy"
+export API_KEY="your-validator-key"
 export MODEL_NAME="gpt-4o-mini"        # optional, default is gpt-4o-mini
 python inference.py
 ```
@@ -251,8 +252,8 @@ List available task IDs.
 | Variable          | Default                 | Description                           |
 | :---------------- | :---------------------- | :------------------------------------ |
 | `ENV_API_URL`     | `http://localhost:7860` | URL of the environment API server     |
-| `OPENAI_API_KEY`  | None                    | OpenAI API key (enables LLM agent)    |
-| `OPENAI_BASE_URL` | None                    | Custom OpenAI-compatible API base URL |
+| `API_BASE_URL`    | None                    | LiteLLM / validator proxy base URL    |
+| `API_KEY`         | None                    | LiteLLM / validator proxy API key     |
 | `MODEL_NAME`      | `gpt-4o-mini`           | Model to use for inference            |
 
 ---
