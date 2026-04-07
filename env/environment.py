@@ -131,6 +131,7 @@ class ModelCardAuditEnv:
                 type=action.issue_type or "unknown",
                 severity=action.severity or "medium",
                 description=action.description or "",
+                regulation=action.regulation,
                 suggested_fix=action.suggestion
             )
             self.findings.append(finding)

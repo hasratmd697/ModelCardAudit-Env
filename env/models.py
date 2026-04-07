@@ -43,6 +43,7 @@ class Action(BaseModel):
     issue_type: Optional[str] = None
     severity: Optional[str] = None
     description: Optional[str] = None
+    regulation: Optional[str] = None
     suggestion: Optional[str] = None
     claim_key: Optional[str] = None
 

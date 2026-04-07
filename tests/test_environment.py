@@ -37,11 +37,13 @@ def test_flag_issue_action(env):
         section_name="limitations",
         issue_type="missing",
         severity="high",
-        description="limitations section is missing"
+        description="limitations section is missing",
+        regulation="EU AI Act Article 9"
     )
     obs, reward, done, info = env.step(action)
     assert len(obs.findings_so_far) == 1
     assert obs.findings_so_far[0].section == "limitations"
+    assert obs.findings_so_far[0].regulation == "EU AI Act Article 9"
 
 def test_submit_audit_ends_episode(env):
     env.reset("basic_completeness")
