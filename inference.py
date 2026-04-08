@@ -31,6 +31,11 @@ if os.path.exists(".env"):
                 key, val = line.split("=", 1)
                 os.environ.setdefault(key.strip(), val.strip().strip('"\''))
 
+REQUEST_TIMEOUT_SECONDS = float(os.environ.get("REQUEST_TIMEOUT_SECONDS", "20"))
+SERVER_HEALTH_RETRIES = int(os.environ.get("SERVER_HEALTH_RETRIES", "5"))
+SERVER_HEALTH_DELAY_SECONDS = float(os.environ.get("SERVER_HEALTH_DELAY_SECONDS", "2"))
+PROXY_MAX_RETRIES = int(os.environ.get("PROXY_MAX_RETRIES", "3"))
+
 def get_env_server_url() -> str:
     """Return the local environment server URL."""
     return os.environ.get("ENV_API_URL", "http://localhost:7860")
@@ -52,6 +57,43 @@ def build_proxy_client() -> OpenAI:
         base_url=os.environ["API_BASE_URL"],
         api_key=os.environ["API_KEY"],
     )
+
+
+def request_json(method: str, url: str, *, payload: dict | None = None) -> tuple[dict | None, str | None]:
+    """Send an HTTP request and safely decode a JSON response."""
+    try:
+        response = requests.request(
+            method=method,
+            url=url,
+            json=payload,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        return None, f"{type(exc).__name__}: {exc}"
+
+    try:
+        return response.json(), None
+    except ValueError as exc:
+        body_preview = response.text[:200].replace("\n", " ")
+        return None, f"Invalid JSON response from {url}: {exc}. Body: {body_preview}"
+
+
+def wait_for_server(env_server_url: str) -> bool:
+    """Wait briefly for the local environment server to become reachable."""
+    for attempt in range(1, SERVER_HEALTH_RETRIES + 1):
+        _, error = request_json("GET", f"{env_server_url}/")
+        if error is None:
+            return True
+
+        print(
+            f"  Health check attempt {attempt}/{SERVER_HEALTH_RETRIES} failed: {error}",
+            flush=True,
+        )
+        if attempt < SERVER_HEALTH_RETRIES:
+            time.sleep(SERVER_HEALTH_DELAY_SECONDS)
+
+    return False
 
 BASE_SYSTEM_PROMPT = """You are an expert AI model card auditor. Your job is to review ML model cards for completeness, technical consistency, and regulatory compliance.
 
@@ -401,7 +443,7 @@ def call_llm_proxy(client: OpenAI, task_id: str, obs: dict) -> str:
     ]
 
     last_error = None
-    for attempt in range(3):
+    for attempt in range(PROXY_MAX_RETRIES):
         try:
             completion = client.chat.completions.create(
                 model=get_model_name(),
@@ -409,13 +451,28 @@ def call_llm_proxy(client: OpenAI, task_id: str, obs: dict) -> str:
                 temperature=0.0,
                 max_tokens=80,
             )
-            return completion.choices[0].message.content or "{}"
+            content = completion.choices[0].message.content
+            if not content:
+                raise ValueError("LiteLLM proxy returned an empty response.")
+            return content
         except Exception as exc:
             last_error = exc
-            if attempt < 2:
+            print(
+                f"  LiteLLM proxy attempt {attempt + 1}/{PROXY_MAX_RETRIES} failed: {exc}",
+                flush=True,
+            )
+            if attempt < PROXY_MAX_RETRIES - 1:
                 time.sleep(attempt + 1)
 
-    raise RuntimeError(f"LiteLLM proxy request failed after retries: {last_error}") from last_error
+    print("  LiteLLM proxy unavailable after retries. Continuing with deterministic actions.", flush=True)
+    return json.dumps(
+        {
+            "task": task_id,
+            "model": obs.get("model_card_metadata", {}).get("model_name", "Unknown"),
+            "status": "proxy_unavailable",
+            "error": str(last_error) if last_error else "unknown_error",
+        }
+    )
 
 def format_observation(obs: dict) -> str:
     """Format the observation into a prompt for the LLM."""
@@ -495,98 +552,96 @@ def run_task_deterministic(task_id: str, client: OpenAI | None = None) -> float:
     print(f"{'='*60}")
 
     env_server_url = get_env_server_url()
-    res = requests.post(f"{env_server_url}/reset", json={"task_id": task_id})
-    if res.status_code != 200:
-        print(f"Failed to reset: {res.text}")
-        emit_validator_event("END", task=task_id, score=0.0, steps=0, status="reset_failed")
-        return 0.0
-
-    obs = res.json()
-    if client is not None:
-        proxy_response = call_llm_proxy(client, task_id, obs)
-        print(f"  LiteLLM proxy connected: {proxy_response}")
-
-    done = False
+    obs = None
     final_score = 0.0
-    pending_actions = None
 
-    while not done:
-        unreviewed = [s for s in obs['available_sections'] if s not in obs['sections_reviewed']]
+    try:
+        obs, error = request_json("POST", f"{env_server_url}/reset", payload={"task_id": task_id})
+        if error:
+            print(f"Failed to reset: {error}")
+            emit_validator_event("END", task=task_id, score=0.0, steps=0, status="reset_failed")
+            return 0.0
 
-        if unreviewed:
-            action = {"action_type": "read_section", "section_name": unreviewed[0]}
-        elif pending_actions is None:
-            pending_actions = plan_findings(task_id, obs)
-            if pending_actions:
+        if client is not None:
+            proxy_response = call_llm_proxy(client, task_id, obs)
+            print(f"  LiteLLM proxy status: {proxy_response}")
+
+        done = False
+        pending_actions = None
+
+        while not done:
+            unreviewed = [s for s in obs['available_sections'] if s not in obs['sections_reviewed']]
+
+            if unreviewed:
+                action = {"action_type": "read_section", "section_name": unreviewed[0]}
+            elif pending_actions is None:
+                pending_actions = plan_findings(task_id, obs)
+                if pending_actions:
+                    action = pending_actions.pop(0)
+                else:
+                    action = {"action_type": "submit_audit"}
+            elif pending_actions:
                 action = pending_actions.pop(0)
             else:
                 action = {"action_type": "submit_audit"}
-        elif pending_actions:
-            action = pending_actions.pop(0)
-        else:
-            action = {"action_type": "submit_audit"}
-        
-        step_number = obs["step_count"] + 1
-        print(f"  Step {step_number}: {action['action_type']}", end="")
-        if action.get('section_name'):
-            print(f" -> {action['section_name']}", end="")
-        print()
 
-        res = requests.post(f"{env_server_url}/step", json=action)
-        if res.status_code != 200:
-            print(f"  Step error: {res.text}")
-            emit_validator_event("END", task=task_id, score=final_score, steps=obs["step_count"], status="step_failed")
-            break
-        step_data = res.json()
-        obs = step_data["observation"]
-        done = step_data["done"]
-        emit_validator_event(
-            "STEP",
-            task=task_id,
-            step=step_number,
-            action=action["action_type"],
-            reward=step_data["reward"].get("total", 0.0),
-            done=done
-        )
-        
-        if done:
-            final_score = step_data["info"].get("score", 0.0)
-            print(f"\n  Episode finished. Final Score: {final_score:.4f}")
-            emit_validator_event("END", task=task_id, score=final_score, steps=obs["step_count"], status="completed")
+            step_number = obs["step_count"] + 1
+            print(f"  Step {step_number}: {action['action_type']}", end="")
+            if action.get('section_name'):
+                print(f" -> {action['section_name']}", end="")
+            print()
+
+            step_data, error = request_json("POST", f"{env_server_url}/step", payload=action)
+            if error:
+                print(f"  Step error: {error}")
+                emit_validator_event(
+                    "END",
+                    task=task_id,
+                    score=final_score,
+                    steps=obs["step_count"],
+                    status="step_failed",
+                )
+                break
+
+            try:
+                obs = step_data["observation"]
+                done = step_data["done"]
+                reward_total = step_data.get("reward", {}).get("total", 0.0)
+                info = step_data.get("info", {})
+            except (AttributeError, KeyError, TypeError) as exc:
+                print(f"  Step response parse error: {exc}")
+                emit_validator_event(
+                    "END",
+                    task=task_id,
+                    score=final_score,
+                    steps=obs["step_count"],
+                    status="step_parse_failed",
+                )
+                break
+
+            emit_validator_event(
+                "STEP",
+                task=task_id,
+                step=step_number,
+                action=action["action_type"],
+                reward=reward_total,
+                done=done
+            )
+
+            if done:
+                final_score = info.get("score", 0.0)
+                print(f"\n  Episode finished. Final Score: {final_score:.4f}")
+                emit_validator_event("END", task=task_id, score=final_score, steps=obs["step_count"], status="completed")
+    except Exception as exc:
+        step_count = obs.get("step_count", 0) if isinstance(obs, dict) else 0
+        print(f"Task failed unexpectedly: {exc}")
+        emit_validator_event("END", task=task_id, score=final_score, steps=step_count, status="task_exception")
 
     return final_score
 
 
-if __name__ == "__main__":
-    tasks = ["basic_completeness", "technical_consistency", "regulatory_compliance"]
-    use_proxy = proxy_credentials_available()
-    env_server_url = get_env_server_url()
-
-    print("Checking server health...")
-    try:
-        r = requests.get(f"{env_server_url}/")
-        r.raise_for_status()
-        print("Server is running.\n")
-    except Exception:
-        print("Server is not running. Please start it with:")
-        print("  uvicorn server.app:app --host 0.0.0.0 --port 7860")
-        exit(1)
-
-    if use_proxy:
-        print(f"Running proxy-backed baseline (model: {get_model_name()})")
-        client = build_proxy_client()
-    else:
-        print("Running deterministic local baseline.")
-        print("Set API_BASE_URL and API_KEY to enable the validator-backed LiteLLM path.\n")
-        client = None
-
-    results = {}
-    for task in tasks:
-        score = run_task_deterministic(task, client)
-        results[task] = score
-        time.sleep(0.5)
-    
-    # Print results table
+def print_results_table(results: dict[str, float]) -> None:
+    """Print the score table in a stable format."""
     print(f"\n{'='*60}")
     print("BASELINE RESULTS")
     print(f"{'='*60}")
@@ -597,3 +652,49 @@ if __name__ == "__main__":
     print(f"{'-'*40}")
     avg = sum(results.values()) / len(results) if results else 0
     print(f"{'Average':<30} {avg:>10.4f}")
+
+
+def main() -> int:
+    tasks = ["basic_completeness", "technical_consistency", "regulatory_compliance"]
+    use_proxy = proxy_credentials_available()
+    env_server_url = get_env_server_url()
+
+    print("Checking server health...")
+    if wait_for_server(env_server_url):
+        print("Server is running.\n")
+    else:
+        print("Server is not running after retries. Please start it with:")
+        print("  uvicorn server.app:app --host 0.0.0.0 --port 7860")
+        results = {}
+        for task in tasks:
+            results[task] = 0.0
+            emit_validator_event("START", task=task, mode="server_unavailable")
+            emit_validator_event("END", task=task, score=0.0, steps=0, status="server_unavailable")
+        print_results_table(results)
+        return 0
+
+    if use_proxy:
+        print(f"Running proxy-backed baseline (model: {get_model_name()})")
+        try:
+            client = build_proxy_client()
+        except Exception as exc:
+            print(f"Failed to initialize LiteLLM proxy client: {exc}")
+            print("Continuing with deterministic local baseline.\n")
+            client = None
+    else:
+        print("Running deterministic local baseline.")
+        print("Set API_BASE_URL and API_KEY to enable the validator-backed LiteLLM path.\n")
+        client = None
+
+    results = {}
+    for task in tasks:
+        score = run_task_deterministic(task, client)
+        results[task] = score
+        time.sleep(0.5)
+
+    print_results_table(results)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
