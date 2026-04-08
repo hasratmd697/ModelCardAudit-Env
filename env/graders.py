@@ -18,7 +18,7 @@ def grade_easy_task(findings: List[Finding], ground_truth: List[Dict[str, Any]],
     coverage = len(sections_reviewed) / total_sections if total_sections > 0 else 0
     
     score = 0.5 * recall + 0.3 * precision + 0.2 * coverage
-    return max(0.0, min(1.0, score))
+    return max(0.01, min(0.99, score))
 
 def grade_medium_task(findings: List[Finding], ground_truth: List[Dict[str, Any]]) -> float:
     """
@@ -48,7 +48,7 @@ def grade_medium_task(findings: List[Finding], ground_truth: List[Dict[str, Any]
     suggestion_quality = sum([1 for f in findings if f.suggested_fix]) / num_findings if num_findings > 0 else 0
     
     score = 0.4 * recall + 0.3 * precision + 0.15 * suggestion_quality + 0.15 * severity_accuracy
-    return max(0.0, min(1.0, score))
+    return max(0.01, min(0.99, score))
 
 def grade_hard_task(findings: List[Finding], ground_truth: List[Dict[str, Any]], steps_taken: int, max_steps: int) -> float:
     """
@@ -89,7 +89,7 @@ def grade_hard_task(findings: List[Finding], ground_truth: List[Dict[str, Any]],
     efficiency = max(0.0, 1.0 - (steps_taken / max_steps))
     
     score = 0.35 * recall + 0.25 * precision + 0.15 * severity_accuracy + 0.15 * regulatory_mapping + 0.10 * efficiency
-    return max(0.0, min(1.0, score))
+    return max(0.01, min(0.99, score))
 
 def grade_task(task_id: str, findings: List[Finding], ground_truth: List[Dict[str, Any]], sections_reviewed: List[str], total_sections: int, steps_taken: int, max_steps: int) -> float:
     if task_id == "basic_completeness":
