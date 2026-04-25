@@ -10,6 +10,8 @@ env = ModelCardAuditEnv()
 
 class ResetRequest(BaseModel):
     task_id: str = "basic_completeness"
+    hf_repo_id: Optional[str] = None
+    hf_revision: Optional[str] = None
 
 @app.get("/")
 def read_root():
@@ -19,7 +21,9 @@ def read_root():
 def reset_env(req: Optional[ResetRequest] = None):
     try:
         task_id = req.task_id if req else "basic_completeness"
-        obs = env.reset(task_id)
+        hf_repo_id = req.hf_repo_id if req else None
+        hf_revision = req.hf_revision if req else None
+        obs = env.reset(task_id, hf_repo_id=hf_repo_id, hf_revision=hf_revision)
         return obs.model_dump()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

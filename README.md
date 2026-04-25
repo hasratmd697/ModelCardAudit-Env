@@ -114,6 +114,18 @@ pip install -r requirements.txt
 uvicorn server.app:app --host 0.0.0.0 --port 7860
 ```
 
+### Audit a Hugging Face Model Card
+
+1. Open **New Audit** in the frontend.
+2. Set **Source** to **Hugging Face repo**.
+3. Enter a repo id in the format `owner/model-name` (example: `google/gemma-4-e2b`).
+4. Optionally set a revision (defaults to `main`, then falls back to `master`).
+5. Start the audit. The app fetches `README.md`, maps sections into the audit schema, and runs the normal workflow.
+
+Notes:
+- External Hugging Face cards do not have local ground-truth annotations in this project, so score values are best treated as directional.
+- Checklist and audit actions still work exactly the same as local dataset cards.
+
 ### Running the Baseline Agent
 
 ```bash

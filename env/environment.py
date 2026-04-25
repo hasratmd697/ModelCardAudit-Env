@@ -2,10 +2,11 @@ import os
 import json
 import random
 import uuid
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 from .models import Observation, Action, ActionType, Finding, ChecklistItem, Reward
 from .reward import compute_reward
 from .graders import grade_task
+from .hf_model_card import build_hf_model_card
 
 # Paths relative to the project root
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
@@ -26,7 +27,7 @@ class ModelCardAuditEnv:
         self.max_steps = 30
         self.done = False
 
-    def load_data(self, task_id: str):
+    def load_data(self, task_id: str, hf_repo_id: Optional[str] = None, hf_revision: Optional[str] = None):
         if task_id == "basic_completeness":
             difficulty = "easy"
             self.max_steps = 30
@@ -57,6 +58,17 @@ class ModelCardAuditEnv:
         with open(os.path.join(DATA_DIR, "ground_truth", gt_file), "r", encoding="utf-8") as f:
             gt_data = json.load(f)
 
+        if hf_repo_id:
+            required_sections = sorted({item.section for item in self.checklist})
+            self.model_card = build_hf_model_card(
+                repo_id=hf_repo_id,
+                required_sections=required_sections,
+                revision=hf_revision,
+            )
+            # External cards are not pre-annotated in local GT files.
+            self.ground_truth = []
+            return
+
         # Select a random model card
         mc_dir = os.path.join(DATA_DIR, "model_cards", difficulty)
         mc_files = [f for f in os.listdir(mc_dir) if f.endswith(".json")]
@@ -71,7 +83,12 @@ class ModelCardAuditEnv:
         card_id = self.model_card.get("id", chosen_file.replace(".json", ""))
         self.ground_truth = gt_data.get(card_id, [])
 
-    def reset(self, task_id: str = "basic_completeness") -> Observation:
+    def reset(
+        self,
+        task_id: str = "basic_completeness",
+        hf_repo_id: Optional[str] = None,
+        hf_revision: Optional[str] = None,
+    ) -> Observation:
         self.task_id = task_id
         self.step_count = 0
         self.done = False
@@ -79,7 +96,7 @@ class ModelCardAuditEnv:
         self.sections_reviewed = []
         self.action_history = []
         
-        self.load_data(task_id)
+        self.load_data(task_id, hf_repo_id=hf_repo_id, hf_revision=hf_revision)
         
         return self._get_observation()
 
@@ -186,12 +203,25 @@ class ModelCardAuditEnv:
         )
 
     def state(self) -> Dict[str, Any]:
+        sections = self.model_card.get("sections", {})
         return {
             "task_id": self.task_id,
+            "task_description": self.task_description,
             "step_count": self.step_count,
+            "max_steps": self.max_steps,
             "done": self.done,
             "findings": [f.model_dump() for f in self.findings],
             "sections_reviewed": self.sections_reviewed,
+            "available_sections": list(sections.keys()),
             "action_history": self.action_history,
-            "ground_truth_count": len(self.ground_truth)
+            "ground_truth_count": len(self.ground_truth),
+            "model_card_id": self.model_card.get("id"),
+            "model_card_metadata": {
+                "model_name": self.model_card.get("model_name"),
+                "model_type": self.model_card.get("model_type"),
+                "framework": self.model_card.get("framework"),
+            },
+            "model_card_source": self.model_card.get("source", {"provider": "local"}),
+            "model_card_sections": sections,
+            "checklist": [item.model_dump() for item in self.checklist],
         }

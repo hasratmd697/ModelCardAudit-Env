@@ -1,7 +1,43 @@
+# Python environment
 .venv/
+venv/
+env/
 __pycache__/
-.pytest_cache/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Project-specific planning files
 hackathon_project_plan.md
+frontend_implementation_plan.md
 .qoder
+

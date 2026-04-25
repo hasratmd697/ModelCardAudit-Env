@@ -65,5 +65,7 @@ def compute_reward(findings: List[Finding], ground_truth: List[Dict[str, Any]], 
         recall_score=recall,
         coverage_score=coverage,
         efficiency_bonus=efficiency,
-        false_positive_penalty=false_positive_penalty
+        false_positive_penalty=false_positive_penalty,
+        progress_bonus=progress,
+        repetition_penalty=repetition_penalty,
     )

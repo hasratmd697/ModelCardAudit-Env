@@ -1,0 +1,56 @@
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f8fa;
+  --bg-tertiary: #edeef1;
+  --bg-accent-soft: #eef4ff;
+  --bg-danger-soft: #fef2f2;
+  --bg-success-soft: #ecfdf3;
+  --bg-warning-soft: #fff7ed;
+
+  --text-primary: #1a1d23;
+  --text-secondary: #5f6578;
+  --text-muted: #9198a1;
+  --text-inverse: #ffffff;
+
+  --border: #e2e4e9;
+  --border-strong: #cbd1db;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+
+  --severity-critical: #dc2626;
+  --severity-high: #ea580c;
+  --severity-medium: #d97706;
+  --severity-low: #65a30d;
+
+  --status-pass: #16a34a;
+  --status-fail: #dc2626;
+  --status-warn: #d97706;
+  --status-neutral: #64748b;
+
+  --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.06);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+
+  --topbar-height: 68px;
+  --sidebar-width: 244px;
+  --mobile-nav-height: 72px;
+}

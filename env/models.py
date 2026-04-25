@@ -55,3 +55,5 @@ class Reward(BaseModel):
     coverage_score: float
     efficiency_bonus: float
     false_positive_penalty: float
+    progress_bonus: float = 0.0
+    repetition_penalty: float = 0.0
