@@ -1,4 +1,6 @@
+import os
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
@@ -13,9 +15,7 @@ class ResetRequest(BaseModel):
     hf_repo_id: Optional[str] = None
     hf_revision: Optional[str] = None
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to ModelCardAudit-Env"}
+
 
 @app.post("/reset")
 def reset_env(req: Optional[ResetRequest] = None):
@@ -54,6 +54,15 @@ def get_tasks():
             "regulatory_compliance"
         ]
     }
+
+# Serve frontend static files
+frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+if os.path.exists(frontend_dist):
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+else:
+    @app.get("/")
+    def fallback_root():
+        return {"message": "Frontend build not found. API is running."}
 
 def main():
     """Entry point for running the ModelCardAudit-Env server."""
