@@ -15,7 +15,9 @@ class ResetRequest(BaseModel):
     hf_repo_id: Optional[str] = None
     hf_revision: Optional[str] = None
 
-
+@app.get("/api-root")
+def api_root():
+    return {"message": "Welcome to ModelCardAudit-Env API"}
 
 @app.post("/reset")
 def reset_env(req: Optional[ResetRequest] = None):
