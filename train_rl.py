@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import argparse
+import time
 
 # ---------------------------------------------------------------------------
 # vllm stub — trl calls importlib.util.find_spec("vllm") and then does
@@ -59,6 +60,41 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from env.models import Action, ActionType
+
+
+TRAINING_STATE = {
+    "status": "starting",
+    "message": "Booting trainer...",
+    "started_at": None,
+    "ended_at": None,
+    "error": None,
+}
+
+
+def _set_training_state(status: str, message: str, error: str = None):
+    TRAINING_STATE["status"] = status
+    TRAINING_STATE["message"] = message
+    TRAINING_STATE["error"] = error
+    if status == "running" and TRAINING_STATE["started_at"] is None:
+        TRAINING_STATE["started_at"] = time.time()
+    if status in {"completed", "failed"}:
+        TRAINING_STATE["ended_at"] = time.time()
+
+
+def _render_status_message() -> str:
+    started_at = TRAINING_STATE.get("started_at")
+    elapsed = "unknown"
+    if started_at:
+        elapsed = f"{int(time.time() - started_at)}s"
+
+    lines = [
+        f"status: {TRAINING_STATE['status']}",
+        f"message: {TRAINING_STATE['message']}",
+        f"elapsed: {elapsed}",
+    ]
+    if TRAINING_STATE.get("error"):
+        lines.append(f"error: {TRAINING_STATE['error']}")
+    return "\n".join(lines)
 
 def parse_action_safe(completion_text):
     text = completion_text.strip()
@@ -142,7 +178,7 @@ def keep_alive():
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
-            self.wfile.write(b"Training in progress...")
+            self.wfile.write(_render_status_message().encode("utf-8"))
         def log_message(self, format, *args):
             pass  # Suppress HTTP logging
 
@@ -162,11 +198,24 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_model", type=str, default="Qwen/Qwen2.5-0.5B-Instruct")
     parser.add_argument("--trajectories", type=str, default="data/trajectories/expert.jsonl")
-    parser.add_argument("--epochs", type=int, default=3)
+    parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--push_to_hub", action="store_true")
     parser.add_argument("--hub_model_id", type=str, default="Hasrathussain/audit-agent-rl")
-    parser.add_argument("--max_steps", type=int, default=-1, help="Max steps for smoke testing")
+    parser.add_argument(
+        "--max_steps",
+        type=int,
+        default=300,
+        help="Maximum GRPO training steps (bounded by default for HF Spaces).",
+    )
+    parser.add_argument(
+        "--max_samples",
+        type=int,
+        default=1500,
+        help="Cap the number of prompt samples loaded from trajectories.",
+    )
     args = parser.parse_args()
+
+    _set_training_state("running", "Loading trajectories...")
     
     # 1. Load Dataset
     if not os.path.exists(args.trajectories):
@@ -179,8 +228,12 @@ def main():
     # Drop duplicates to avoid over-weighting identical states
     df['prompt_str'] = df['prompt'].astype(str)
     df = df.drop_duplicates(subset=['prompt_str'])
+    if args.max_samples > 0:
+        df = df.head(args.max_samples)
     df = df[['prompt']]
     dataset = Dataset.from_pandas(df)
+
+    _set_training_state("running", f"Loaded {len(dataset)} unique prompts. Loading model...")
     
     # 2. Setup Model with QLoRA
     print(f"Loading base model {args.base_model}...")
@@ -260,17 +313,27 @@ def main():
         args=training_args,
         train_dataset=dataset,
     )
-    
+
     # 4. Train
+    _set_training_state("running", f"Training started (max_steps={args.max_steps}, epochs={args.epochs})...")
     print("Starting GRPO Training...")
-    trainer.train()
-    
-    if args.push_to_hub:
-        print(f"Pushing to Hub: {args.hub_model_id}")
-        trainer.push_to_hub()
-    else:
-        print("Saving locally...")
-        trainer.save_model("models/audit-agent-rl")
+
+    try:
+        trainer.train()
+
+        if args.push_to_hub:
+            _set_training_state("running", f"Training done. Pushing to Hub: {args.hub_model_id}")
+            print(f"Pushing to Hub: {args.hub_model_id}")
+            trainer.push_to_hub()
+        else:
+            _set_training_state("running", "Training done. Saving model locally...")
+            print("Saving locally...")
+            trainer.save_model("models/audit-agent-rl")
+
+        _set_training_state("completed", "Training completed successfully.")
+    except Exception as exc:
+        _set_training_state("failed", "Training failed.", error=str(exc))
+        raise
 
 if __name__ == "__main__":
     main()

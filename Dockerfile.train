@@ -18,4 +18,11 @@ COPY . .
 # Reduce CUDA allocator fragmentation on T4 (avoids OOM from reserved-but-unused segments)
 ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-CMD ["python", "train_rl.py", "--push_to_hub", "--base_model", "Qwen/Qwen2.5-0.5B-Instruct"]
+CMD [
+    "python", "train_rl.py",
+    "--push_to_hub",
+    "--base_model", "Qwen/Qwen2.5-0.5B-Instruct",
+    "--epochs", "1",
+    "--max_steps", "300",
+    "--max_samples", "1500"
+]
