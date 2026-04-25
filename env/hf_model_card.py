@@ -207,7 +207,7 @@ def _split_sections(markdown: str) -> tuple[str, dict]:
         current_lines = []
 
     for line in markdown.splitlines():
-        heading_match = re.match(r"^(#{1,6})\s+(.+?)\s*$", line)
+        heading_match = re.match(r"^(#{1,2})\s+(.+?)\s*$", line)
         if heading_match:
             flush_current()
             current_heading = re.sub(r"\s*#+\s*$", "", heading_match.group(2)).strip()

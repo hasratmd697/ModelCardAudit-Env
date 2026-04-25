@@ -17,7 +17,7 @@ class ResetRequest(BaseModel):
 
 @app.get("/api-root")
 def api_root():
-    return {"message": "Welcome to ModelCardAudit-Env API"}
+    return {"message": "Online"}
 
 @app.post("/reset")
 def reset_env(req: Optional[ResetRequest] = None):
