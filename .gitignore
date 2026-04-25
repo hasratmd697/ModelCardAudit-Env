@@ -38,6 +38,8 @@ frontend/build/
 # Project-specific planning files
 hackathon_project_plan.md
 frontend_implementation_plan.md
+true_rl_implementation_plan.md
+true_rl_walkthrough.md
 .qoder
 
 # RL Training Artifacts
