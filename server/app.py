@@ -10,8 +10,8 @@ from env.environment import ModelCardAuditEnv
 from env.models import Action, ActionType, Observation
 
 # ── RL agent state (loaded once at startup) ───────────────────────────────────
-_rl_model = None
-_rl_tokenizer = None
+_rl_model: Any = None
+_rl_tokenizer: Any = None
 
 
 def _load_rl_agent():
@@ -94,6 +94,9 @@ def _parse_action(text: str) -> dict:
 
 def _rl_next_action(obs_dict: dict, task_id: str) -> dict:
     """Run one forward pass through the RL model to get the next action."""
+    if _rl_model is None or _rl_tokenizer is None:
+        return {"action_type": "submit_audit"}
+
     system_prompt = BASE_SYSTEM_PROMPT + "\n" + TASK_STRATEGIES.get(task_id, "")
     messages = [
         {"role": "system", "content": system_prompt},
@@ -226,6 +229,7 @@ def run_audit(req: RunAuditRequest):
     steps_log = []
     pending = []
     done = False
+    info: Dict[str, Any] = {}
 
     while not done:
         obs_dict = obs.model_dump()

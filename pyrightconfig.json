@@ -1,0 +1,19 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.13",
+  "include": [
+    "env",
+    "server",
+    "tests",
+    "inference.py",
+    "train_rl.py",
+    "trajectory_collector.py"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "frontend/node_modules",
+    "frontend/dist"
+  ]
+}
