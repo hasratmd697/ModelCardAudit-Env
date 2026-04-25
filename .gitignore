@@ -40,3 +40,7 @@ hackathon_project_plan.md
 frontend_implementation_plan.md
 .qoder
 
+# RL Training Artifacts
+models/
+logs/rl_training/
+data/trajectories/

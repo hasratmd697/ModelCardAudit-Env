@@ -5,3 +5,8 @@ openai>=1.35.0
 requests>=2.32.0
 pytest>=8.0.0
 openenv-core>=0.2.0
+
+# RL agent inference (CPU-compatible)
+transformers>=4.48.0
+peft>=0.14.0
+huggingface_hub>=0.28.0

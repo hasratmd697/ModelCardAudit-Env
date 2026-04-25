@@ -21,6 +21,12 @@ import json
 import time
 import requests
 from openai import OpenAI
+import torch
+try:
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from peft import PeftModel
+except ImportError:
+    pass
 
 # Simple .env parser to avoid requiring external libraries
 if os.path.exists(".env"):
@@ -543,9 +549,27 @@ def parse_action(response_text: str) -> dict:
         return {"action_type": "submit_audit"}
 
 
-def run_task_deterministic(task_id: str, client: OpenAI | None = None) -> float:
-    """Run a deterministic baseline and optionally touch the LiteLLM proxy."""
-    mode = "proxy-backed-deterministic" if client is not None else "deterministic"
+def load_rl_agent():
+    """Load the GRPO-trained model from HF Hub."""
+    try:
+        print("Attempting to load RL agent from Hasrathussain/audit-agent-rl...")
+        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B-Instruct")
+        model = AutoModelForCausalLM.from_pretrained(
+            "Qwen/Qwen2.5-0.5B-Instruct",
+            device_map="auto" if torch.cuda.is_available() else "cpu"
+        )
+        model = PeftModel.from_pretrained(model, "Hasrathussain/audit-agent-rl")
+        model.eval()
+        print("RL agent loaded successfully!")
+        return model, tokenizer
+    except Exception as e:
+        print(f"RL agent not found or failed to load: {e}")
+        return None, None
+
+
+def run_task(task_id: str, client: OpenAI | None = None, rl_model=None, tokenizer=None) -> float:
+    """Run the audit task using RL agent if available, else fallback to deterministic."""
+    mode = "rl-agent" if rl_model is not None else ("proxy-backed-deterministic" if client is not None else "deterministic")
     emit_validator_event("START", task=task_id, mode=mode)
     print(f"\n{'='*60}")
     print(f"Starting Task: {task_id}")
@@ -562,28 +586,51 @@ def run_task_deterministic(task_id: str, client: OpenAI | None = None) -> float:
             emit_validator_event("END", task=task_id, score=0.0, steps=0, status="reset_failed")
             return 0.0
 
-        if client is not None:
+        if client is not None and rl_model is None:
             proxy_response = call_llm_proxy(client, task_id, obs)
             print(f"  LiteLLM proxy status: {proxy_response}")
 
         done = False
         pending_actions = None
+        system_prompt = get_system_prompt(task_id)
 
         while not done:
-            unreviewed = [s for s in obs['available_sections'] if s not in obs['sections_reviewed']]
+            action = None
+            if rl_model is not None:
+                # RL Agent path
+                user_prompt = format_observation(obs)
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
+                text_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                inputs = tokenizer(text_prompt, return_tensors="pt").to(rl_model.device)
+                with torch.no_grad():
+                    outputs = rl_model.generate(**inputs, max_new_tokens=256, temperature=0.1)
+                
+                # Extract completion
+                completion = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True)
+                action = parse_action(completion)
+                
+                if not action.get("action_type"):
+                    action = {"action_type": "submit_audit"}
 
-            if unreviewed:
-                action = {"action_type": "read_section", "section_name": unreviewed[0]}
-            elif pending_actions is None:
-                pending_actions = plan_findings(task_id, obs)
-                if pending_actions:
+            if action is None:
+                # Deterministic fallback path
+                unreviewed = [s for s in obs['available_sections'] if s not in obs['sections_reviewed']]
+
+                if unreviewed:
+                    action = {"action_type": "read_section", "section_name": unreviewed[0]}
+                elif pending_actions is None:
+                    pending_actions = plan_findings(task_id, obs)
+                    if pending_actions:
+                        action = pending_actions.pop(0)
+                    else:
+                        action = {"action_type": "submit_audit"}
+                elif pending_actions:
                     action = pending_actions.pop(0)
                 else:
                     action = {"action_type": "submit_audit"}
-            elif pending_actions:
-                action = pending_actions.pop(0)
-            else:
-                action = {"action_type": "submit_audit"}
 
             step_number = obs["step_count"] + 1
             print(f"  Step {step_number}: {action['action_type']}", end="")
@@ -673,22 +720,28 @@ def main() -> int:
         print_results_table(results)
         return 0
 
-    if use_proxy:
-        print(f"Running proxy-backed baseline (model: {get_model_name()})")
-        try:
-            client = build_proxy_client()
-        except Exception as exc:
-            print(f"Failed to initialize LiteLLM proxy client: {exc}")
-            print("Continuing with deterministic local baseline.\n")
+    rl_model, tokenizer = load_rl_agent()
+
+    if rl_model is None:
+        if use_proxy:
+            print(f"Running proxy-backed baseline (model: {get_model_name()})")
+            try:
+                client = build_proxy_client()
+            except Exception as exc:
+                print(f"Failed to initialize LiteLLM proxy client: {exc}")
+                print("Continuing with deterministic local baseline.\n")
+                client = None
+        else:
+            print("Running deterministic local baseline.")
+            print("Set API_BASE_URL and API_KEY to enable the validator-backed LiteLLM path.\n")
             client = None
     else:
-        print("Running deterministic local baseline.")
-        print("Set API_BASE_URL and API_KEY to enable the validator-backed LiteLLM path.\n")
+        print("Running with RL Fine-tuned Agent.")
         client = None
 
     results = {}
     for task in tasks:
-        score = run_task_deterministic(task, client)
+        score = run_task(task, client, rl_model, tokenizer)
         results[task] = score
         time.sleep(0.5)
 

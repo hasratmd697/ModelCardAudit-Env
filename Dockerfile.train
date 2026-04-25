@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+# torch for CUDA 12.1 — vllm is stubbed in train_rl.py, no need to install it
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu121
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+# Pin trl to a stable release compatible with torch>=2.4 and transformers>=4.48
+RUN pip install --no-cache-dir "trl==0.14.0" "transformers>=4.48.0" \
+    "datasets>=3.2.0" "accelerate>=1.3.0" "peft>=0.14.0" \
+    "bitsandbytes>=0.45.0" gymnasium huggingface_hub pandas
+
+COPY . .
+
+# Reduce CUDA allocator fragmentation on T4 (avoids OOM from reserved-but-unused segments)
+ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+CMD ["python", "train_rl.py", "--push_to_hub", "--base_model", "Qwen/Qwen2.5-0.5B-Instruct"]

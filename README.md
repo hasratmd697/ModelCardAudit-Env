@@ -92,6 +92,24 @@ Multi-dimensional reward combining:
 - **Grader**: `score = 0.35 * recall + 0.25 * precision + 0.15 * severity_accuracy + 0.15 * regulatory_mapping + 0.10 * efficiency`
 - **Expected Baseline**: 0.15–0.25
 
+## 🧠 RL Training (True Self-Improvement)
+
+This environment supports training an RL agent that permanently learns
+from its auditing mistakes using GRPO (Group Relative Policy Optimization).
+
+### Quick Start
+
+```bash
+# Step 1: Collect expert trajectories (runs on CPU, uses NVIDIA API)
+python trajectory_collector.py --num_rollouts 5
+
+# Step 2: Train on HuggingFace Spaces T4 GPU (~$1-2)
+python train_rl.py --push_to_hub --hub_model_id Hasrathussain/audit-agent-rl
+
+# Step 3: The updated inference.py auto-loads the trained model
+python inference.py
+```
+
 ---
 
 ## 🚀 Quick Start
