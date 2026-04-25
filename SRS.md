@@ -45,7 +45,7 @@ ModelCardAudit-Env is a standalone environment built to conform to the OpenEnv s
 ### 2.4 Operating Environment
 - **OS**: Cross-platform (Linux, Windows, macOS) via Docker.
 - **Runtime**: Python 3.11+
-- **Containerization**: Docker, capable of running within HuggingFace Spaces.
+- **Containerization**: Multi-stage Docker build that first compiles the Vite frontend using Node.js, and then serves both the compiled static assets and the API via the Python FastAPI container. Designed to run seamlessly on a single port (7860) within HuggingFace Spaces.
 - **Hardware Resources**: Minimal; runs on 2 vCPUs and 8GB RAM without local ML model execution.
 
 ### 2.5 Design and Implementation Constraints
@@ -58,10 +58,12 @@ ModelCardAudit-Env is a standalone environment built to conform to the OpenEnv s
 ## 3. External Interface Requirements
 
 ### 3.1 User Interfaces
-- A web-based frontend allowing users to initiate a "New Audit", specify a HuggingFace repository ID, set the revision branch, and interact with the audit workflow.
+- A web-based frontend (built with Vite, Vanilla JS/CSS) allowing users to initiate a "New Audit", specify a HuggingFace repository ID, set the revision branch, and interact with the audit workflow. The UI is served directly by the FastAPI backend on the root (`/`) path and periodically polls the `/api-root` endpoint for server health.
 
 ### 3.2 Software Interfaces
-- **FastAPI Server**: Exposes RESTful endpoints for environment interaction.
+- **FastAPI Server**: Exposes RESTful endpoints for environment interaction and serves the frontend.
+  - `GET /`: Serves the compiled frontend UI static assets (`index.html`).
+  - `GET /api-root`: Returns a health check status message for the frontend to verify connectivity.
   - `POST /reset`: Resets the environment and returns the initial observation.
   - `POST /step`: Processes an action and returns the subsequent observation, reward, and status.
   - `GET /state`: Retrieves the full internal state for debugging.
