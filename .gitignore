@@ -42,7 +42,8 @@ true_rl_implementation_plan.md
 true_rl_walkthrough.md
 .qoder
 
-# RL Training Artifacts
+# RL Training Artifacts — keep logs and plots, ignore large model weights
 models/
-logs/rl_training/
 data/trajectories/
+logs/rl_training/
+# DO NOT ignore: logs/training_log.csv and plots/*.png — judges need these

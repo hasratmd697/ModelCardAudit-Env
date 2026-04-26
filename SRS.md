@@ -32,6 +32,7 @@ ModelCardAudit-Env is a standalone environment built to conform to the OpenEnv s
 
 ### 2.2 Product Functions
 - **Model Card Loading**: Load local synthetic model cards or external model cards from HuggingFace repositories.
+- **RL Agent Startup**: On API startup, load a base language model plus a GRPO-trained LoRA adapter from HuggingFace Hub for autonomous auditing.
 - **Section Reading**: Allow the agent to incrementally read specific sections of a model card.
 - **Issue Flagging**: Provide mechanisms for the agent to flag issues with varying severities and types.
 - **Improvement Suggestion**: Enable the agent to suggest actionable improvements for flagged issues.
@@ -46,12 +47,13 @@ ModelCardAudit-Env is a standalone environment built to conform to the OpenEnv s
 - **OS**: Cross-platform (Linux, Windows, macOS) via Docker.
 - **Runtime**: Python 3.11+
 - **Containerization**: Multi-stage Docker build that first compiles the Vite frontend using Node.js, and then serves both the compiled static assets and the API via the Python FastAPI container. Designed to run seamlessly on a single port (7860) within HuggingFace Spaces.
-- **Hardware Resources**: Minimal; runs on 2 vCPUs and 8GB RAM without local ML model execution.
+- **Hardware Resources**: Minimal for deterministic mode; RL startup and inference benefit from GPU but remain functional on CPU with slower initialization/inference.
 
 ### 2.5 Design and Implementation Constraints
 - Must comply with the OpenEnv specification.
 - Must run efficiently within constrained hardware environments (e.g., standard HuggingFace Spaces).
 - Inference script relies on an external LLM via an OpenAI-compatible client, requiring proper API key management.
+- RL model boot depends on HuggingFace Hub availability and adapter accessibility (`RL_MODEL_ID`); if unavailable, the system must degrade gracefully to deterministic mode.
 
 ---
 
@@ -63,12 +65,14 @@ ModelCardAudit-Env is a standalone environment built to conform to the OpenEnv s
 ### 3.2 Software Interfaces
 - **FastAPI Server**: Exposes RESTful endpoints for environment interaction and serves the frontend.
   - `GET /`: Serves the compiled frontend UI static assets (`index.html`).
-  - `GET /api-root`: Returns a health check status message for the frontend to verify connectivity.
+  - `GET /api-root`: Returns health and RL readiness metadata (`message`, `rl_agent_loaded`) for frontend connectivity and agent status checks.
   - `POST /reset`: Resets the environment and returns the initial observation.
   - `POST /step`: Processes an action and returns the subsequent observation, reward, and status.
+  - `POST /run-audit`: Executes a complete autonomous episode using RL policy when available, otherwise deterministic fallback.
   - `GET /state`: Retrieves the full internal state for debugging.
   - `GET /tasks`: Lists available task IDs (e.g., `basic_completeness`, `technical_consistency`, `regulatory_compliance`).
 - **OpenAI API**: The baseline inference agent uses the standard OpenAI client to communicate with underlying LLMs (e.g., `gpt-4o-mini`).
+- **HuggingFace Hub API**: Used to download the RL adapter (default `Hasrathussain/audit-agent-rl`), with optional authenticated requests via `HF_TOKEN`.
 
 ---
 
@@ -96,6 +100,18 @@ A multi-dimensional reward function evaluating:
 - **Efficiency**: Step optimization.
 - **Penalties**: Deductions for false positives and redundant actions.
 
+### 4.4 Autonomous RL Audit Execution
+- At service startup, the system attempts to initialize the RL policy (base model + LoRA adapter).
+- Autonomous audit episodes are executed through `POST /run-audit`.
+- Runtime mode is explicitly returned as either `rl-agent` or `deterministic`.
+- If RL initialization fails, audit functionality remains available through deterministic fallback without service interruption.
+
+### 4.5 Training Telemetry and Plot Generation
+- The RL training pipeline shall write step-level metrics to `training_log.csv` in a configurable log directory.
+- The log must capture phase, step, loss, reward mean, reward standard deviation, and KL divergence where available.
+- A plotting utility shall transform the CSV into reward, loss, KL, combined, and baseline-vs-RL charts for reporting.
+- When running on Hugging Face Spaces, the log directory may be redirected to persistent storage so that the CSV survives restarts.
+
 ---
 
 ## 5. Nonfunctional Requirements
@@ -103,6 +119,7 @@ A multi-dimensional reward function evaluating:
 ### 5.1 Performance Requirements
 - The FastAPI server must respond to state transitions (`/step`, `/reset`) within standard web timeout limits (< 1 second processing time).
 - Agent evaluation must complete deterministically based on provided action trajectories.
+- Startup sequence must complete with either: (a) RL model successfully loaded, or (b) deterministic fallback activated, while keeping API availability intact.
 
 ### 5.2 Security & Safety Requirements
 - The application processes arbitrary model cards; external data fetched from HuggingFace must be safely parsed.

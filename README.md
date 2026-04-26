@@ -106,9 +106,34 @@ python trajectory_collector.py --num_rollouts 5
 # Step 2: Train on HuggingFace Spaces T4 GPU (~$1-2)
 python train_rl.py --push_to_hub --hub_model_id Hasrathussain/audit-agent-rl
 
-# Step 3: The updated inference.py auto-loads the trained model
-python inference.py
+# Step 3: Start the API server (auto-loads the trained RL adapter on startup)
+uvicorn server.app:app --host 0.0.0.0 --port 7860
 ```
+
+Expected startup behavior:
+- Logs show base model loading followed by `RL agent loaded successfully from Hasrathussain/audit-agent-rl`.
+- `GET /api-root` returns `{"message": "Online", "rl_agent_loaded": true}` when the RL model is ready.
+- If model loading fails, the server stays up and falls back to deterministic audit mode.
+
+### Training Logs and Plots
+
+The RL trainer writes step-level metrics to `logs/training_log.csv` through `_CSVLogCallback`.
+
+- On a local run, the CSV is saved under the repo `logs/` directory.
+- On Hugging Face Spaces, open the Space `Files` tab after training finishes and download `logs/training_log.csv` from the runtime filesystem.
+- If you want the log to persist across Space restarts, start training with `--log_dir /data/logs` and enable persistent storage for the Space.
+
+Once you have the CSV, generate the charts with:
+
+```bash
+pip install -e .[rl-train]
+python plot_training.py --log logs/training_log.csv --out plots/
+python plot_training.py \
+  --baseline '{"basic_completeness":0.65,"technical_consistency":0.40,"regulatory_compliance":0.20}' \
+  --rl       '{"basic_completeness":0.72,"technical_consistency":0.55,"regulatory_compliance":0.31}'
+```
+
+This creates `reward_curve.png`, `loss_curve.png`, `kl_curve.png`, `combined.png`, and `baseline_vs_rl.png` in `plots/`.
 
 ---
 
@@ -131,6 +156,11 @@ pip install -r requirements.txt
 ```bash
 uvicorn server.app:app --host 0.0.0.0 --port 7860
 ```
+
+Notes:
+- The server attempts to load the RL agent once during startup.
+- On success, autonomous runs use the RL policy.
+- On failure, `/run-audit` automatically uses the deterministic fallback so the app remains available.
 
 ### Audit a Hugging Face Model Card
 
@@ -177,7 +207,7 @@ docker run -p 7860:7860 modelcard-audit-env
 - Create an HF Space with `openenv` tag
 - Use Docker SDK Space type
 - The FastAPI server exposes on port 7860
-- Endpoints: `/reset`, `/step`, `/state`, `/tasks`
+- Endpoints: `/api-root`, `/reset`, `/step`, `/run-audit`, `/state`, `/tasks`
 
 ---
 
@@ -188,6 +218,7 @@ modelcard-audit-env/
 ├── openenv.yaml                 # OpenEnv metadata
 ├── Dockerfile                   # Container config
 ├── inference.py                 # Baseline agent script (naive + LLM)
+├── plot_training.py             # Training curve and comparison chart generator
 ├── README.md                    # This file
 ├── requirements.txt             # Dependencies
 │
@@ -225,6 +256,19 @@ modelcard-audit-env/
 ---
 
 ## 🔌 API Reference
+
+### `GET /api-root`
+
+Health and readiness endpoint.
+
+Example response:
+
+```json
+{
+  "message": "Online",
+  "rl_agent_loaded": true
+}
+```
 
 ### `POST /reset`
 
@@ -275,6 +319,26 @@ Get the full internal state (for debugging).
 
 List available task IDs.
 
+### `POST /run-audit`
+
+Run one full autonomous audit episode end-to-end.
+
+- Uses RL policy when `rl_agent_loaded = true`
+- Uses deterministic fallback otherwise
+
+Example response fields:
+
+```json
+{
+  "mode": "rl-agent",
+  "task_id": "basic_completeness",
+  "final_score": 0.72,
+  "total_steps": 18,
+  "findings": [],
+  "steps": []
+}
+```
+
 ---
 
 ## ⚙️ Environment Variables
@@ -285,6 +349,9 @@ List available task IDs.
 | `API_BASE_URL`    | None                    | LiteLLM / validator proxy base URL    |
 | `API_KEY`         | None                    | LiteLLM / validator proxy API key     |
 | `MODEL_NAME`      | `gpt-4o-mini`           | Model to use for inference            |
+| `RL_MODEL_ID`     | `Hasrathussain/audit-agent-rl` | HuggingFace Hub LoRA adapter to load at server startup |
+| `HF_TOKEN`        | None                    | Optional HuggingFace token for authenticated Hub downloads (recommended) |
+| `LOG_DIR`         | `logs`                  | Directory used by `train_rl.py` for `training_log.csv` |
 
 ---
 
